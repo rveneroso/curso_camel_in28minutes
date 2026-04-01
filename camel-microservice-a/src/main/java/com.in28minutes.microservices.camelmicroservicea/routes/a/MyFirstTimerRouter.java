@@ -1,5 +1,7 @@
 package com.in28minutes.microservices.camelmicroservicea.routes.a;
 
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +14,14 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class MyFirstTimerRouter extends RouteBuilder {
 
-    @Autowired
     private GetCurrentTimeBean getCurrentTimeBean;
 
     @Autowired
     private SimpleLoggingProcessingComponent loggingComponent;
 
+    public MyFirstTimerRouter(GetCurrentTimeBean getCurrentTimeBean) {
+        this.getCurrentTimeBean = getCurrentTimeBean;
+    }
     @Override
     public void configure() throws Exception {
         // Queue -> endpoint
@@ -42,6 +46,7 @@ public class MyFirstTimerRouter extends RouteBuilder {
                 .log("${body}")
                 .bean(loggingComponent)
                 .log("${body}")
+                .process(new SimpleLoggingProcessor())
                 .to("log:first-timer"); // O mesmo que acima: log é o tipo de endpoint, first-time é o nome dado a ele pelo desenvolvedor.
 
     }
@@ -63,5 +68,14 @@ class SimpleLoggingProcessingComponent {
     Logger logger = LoggerFactory.getLogger(SimpleLoggingProcessingComponent.class);
     public void process(String message) {
         logger.info("SimpleLoggingProcessingComponent {}", message); //
+    }
+}
+
+class SimpleLoggingProcessor implements Processor {
+
+    Logger logger = LoggerFactory.getLogger(SimpleLoggingProcessingComponent.class);
+    @Override
+    public void process(Exchange exchange) throws Exception {
+        logger.info("SimpleLoggingProcessor {}", exchange.getMessage().getBody()); // Loga o corpo da mensagem a partir da Exchange
     }
 }
