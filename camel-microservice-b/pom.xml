@@ -43,6 +43,11 @@
 			<artifactId>camel-spring-boot-starter</artifactId>
 			<version>4.18.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-activemq-starter</artifactId>
+			<version>4.18.0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
