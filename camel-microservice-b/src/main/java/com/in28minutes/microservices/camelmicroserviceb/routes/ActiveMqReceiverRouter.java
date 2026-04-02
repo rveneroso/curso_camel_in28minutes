@@ -24,10 +24,16 @@ public class ActiveMqReceiverRouter extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("activemq:my-activemq-queue")
-                .unmarshal().json(JsonLibrary.Jackson, CurrencyExchange.class)
-                .bean(myCurrentExchangeProcessor)
-                .bean(myCurrentExchangeTransformer)
+//        from("activemq:my-activemq-queue")
+//                .unmarshal().json(JsonLibrary.Jackson, CurrencyExchange.class)
+//                .bean(myCurrentExchangeProcessor)
+//                .bean(myCurrentExchangeTransformer)
+//                .to("log:received-message-from-activemq");
+
+        from("activemq:my-activemq-xml-queue")
+                .unmarshal().jacksonXml(CurrencyExchange.class)
+//                .bean(myCurrentExchangeProcessor)
+//                .bean(myCurrentExchangeTransformer)
                 .to("log:received-message-from-activemq");
     }
 }

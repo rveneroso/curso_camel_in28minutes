@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 public class ActiveMqSenderRouter extends RouteBuilder {
     @Override
     public void configure() throws Exception {
-        from("file:camel-microservice-a/files/json")
+        from("file:camel-microservice-a/files/xml")
                 .log("${body}")
-                .to("activemq:my-activemq-queue");
+                .to("activemq:my-activemq-xml-queue");
     }
 }
