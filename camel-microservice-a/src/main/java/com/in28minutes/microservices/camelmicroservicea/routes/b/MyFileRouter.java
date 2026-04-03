@@ -25,6 +25,7 @@ public class MyFileRouter extends RouteBuilder {
     public void configure() throws Exception {
         from("file:camel-microservice-a/files/input")
                 .routeId("Files-Input-Route")
+                // choice é um exemplo do EIP Content Based Routing
                 .choice()
                     .when(method(deciderBean))
                         .log("XML file")

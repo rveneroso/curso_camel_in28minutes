@@ -10,5 +10,11 @@ public class EipPatternsRouter extends RouteBuilder {
         from("timer:multicast?period=10000")
                 .multicast()
                 .to("log:something1", "activemq:my-activemq-xml-queue");
+
+        from("file:camel-microservice-a/files/csv")
+                .unmarshal().csv()
+                .split(body())
+                .convertBodyTo(String.class)
+                .to("activemq:split-queue");
     }
 }
