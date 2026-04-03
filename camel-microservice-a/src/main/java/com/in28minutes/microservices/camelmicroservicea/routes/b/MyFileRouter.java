@@ -14,7 +14,24 @@ public class MyFileRouter extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from("file:camel-microservice-a/files/input")
-                .log("${body}")
+                .routeId("Files-Input-Route")
+                .choice()
+                    .when(simple("${file:ext} ends with 'xml'"))
+                        .log("XML file")
+                    .when(simple("${file:ext} ends with 'json'"))
+                        .log("JSON file")
+                    .otherwise()
+                        .log("Not xml or json file")
+                .end()
+
+                .convertBodyTo(String.class)
+                // Outra maneira de converter o corpo da mensagem para String é .transform().body(String.class)
+
+                .choice()
+                    .when(simple("${body} contains 'USD'"))
+                        .log("File is a USD conversion")
+                .end()
+                .log("${messageHistory} ${file:absolute.path}")
                 .to("file:camel-microservice-a/files/output");
     }
 }
