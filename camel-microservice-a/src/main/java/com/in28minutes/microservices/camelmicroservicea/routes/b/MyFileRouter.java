@@ -1,11 +1,21 @@
 package com.in28minutes.microservices.camelmicroservicea.routes.b;
 
+import org.apache.camel.Headers;
 import org.apache.camel.builder.RouteBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Component
 public class MyFileRouter extends RouteBuilder {
 
+    private DeciderBean deciderBean;
+
+    public MyFileRouter(DeciderBean deciderBean) {
+        this.deciderBean = deciderBean;
+    }
     /*
      * Observação: quando o código abaixo é executado, os arquivos que se encontravam em files/input são movidos (não são copiados) para a pasta output.
      * Porém, o Camel cria dentro de files/input, uma pasta chamada .camel e coloca nela todos os arquivos que originalmente estavam em files/input.
@@ -16,7 +26,7 @@ public class MyFileRouter extends RouteBuilder {
         from("file:camel-microservice-a/files/input")
                 .routeId("Files-Input-Route")
                 .choice()
-                    .when(simple("${file:ext} ends with 'xml'"))
+                    .when(method(deciderBean))
                         .log("XML file")
                     .when(simple("${file:ext} ends with 'json'"))
                         .log("JSON file")
@@ -41,5 +51,16 @@ public class MyFileRouter extends RouteBuilder {
                 .log("${file:onlyname.noext} ${file:parent} ${file:path} ${file:absolute}")
                 .log("${file:size} ${file:modified}")
                 .log("${routeId} ${camelId} ${body}");
+    }
+}
+
+@Component
+class DeciderBean {
+    Logger logger = LoggerFactory.getLogger(DeciderBean.class);
+
+    public boolean isConditionMet(String body,
+        @Headers Map<String,String> headers) {
+        logger.info("Inside DeciderBean. Message body is {}. Headers are: {}", body,headers);
+        return true;
     }
 }
