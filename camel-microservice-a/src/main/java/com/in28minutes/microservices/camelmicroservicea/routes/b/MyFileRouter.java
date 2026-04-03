@@ -31,7 +31,15 @@ public class MyFileRouter extends RouteBuilder {
                     .when(simple("${body} contains 'USD'"))
                         .log("File is a USD conversion")
                 .end()
-                .log("${messageHistory} ${file:absolute.path}")
+                .to("direct:log-file-values")
                 .to("file:camel-microservice-a/files/output");
+
+        from("direct:log-file-values")
+                .log("File values:\n")
+                .log("${messageHistory} ${file:absolute.path}")
+                .log("${file:name} ${file:name.ext} ${file:name.noext} $file:onlyname}")
+                .log("${file:onlyname.noext} ${file:parent} ${file:path} ${file:absolute}")
+                .log("${file:size} ${file:modified}")
+                .log("${routeId} ${camelId} ${body}");
     }
 }
