@@ -1,0 +1,6 @@
+services:
+  activemq:
+    image: docker.io/apache/activemq-classic:latest
+    ports:
+      - "61616:61616"   # Broker (JMS)
+      - "8161:8161"     # Console Web
