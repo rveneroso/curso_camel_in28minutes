@@ -1,6 +1,8 @@
 package com.in28minutes.microservices.camelmicroservicea.routes.patterns;
 
+import com.in28minutes.microservices.camelmicroservicea.CurrencyExchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.dataformat.JsonLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,26 +21,17 @@ public class EipPatternsRouter extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("timer:multicast?period=10000")
-                .multicast()
-                .to("log:something1", "activemq:my-activemq-xml-queue");
 
-//        from("file:camel-microservice-a/files/csv")
-//                .unmarshal().csv()
-//                .split(body())
-//                .convertBodyTo(String.class)
-//                .to("activemq:split-queue");
 
-        from("file:camel-microservice-a/files/csv")
-                .convertBodyTo(String.class)
-                // O arquivo usado na aula desse assunto é um csv de uma única linha onde os campos são separados por vírgula.
-                // Como o delimitador é justamente a vírgula, então cada campo da linha se torna uma mensagem enviada para split-queue.
-                //.split(body(),",")
-
-                // A sintaxe abaixo chama o método split do bean SplitterComponent passando a vírgula como delimitador.
-                // Importante: todo o conteúdo do arquivo é considerado a mensagem. O arquivo data.csv tem 5 linhas: 1 cabeçalho e 4 linhas de dados. A variável body contém todas as 5 linhas.
-                .bean("splitterComponent", "splitInput(${body}, ',')")
-                .to("activemq:split-queue");
+        from("file:camel-microservice-a/files/aggregate-json")
+                .unmarshal().json(JsonLibrary.Jackson, CurrencyExchange.class)
+                .aggregate(simple("${body.to}"), new ArrayListAggregationStrategy())
+                // A linha abaixo diz: “Só finalize o grupo quando tiver 3 mensagens daquele grupo”
+                .completionSize(3)
+                // Para garantir a exibição dos logs, usar completionTimeout, que diz:
+                // “Se não chegar mais mensagens em 5s, finalize mesmo incompleto”
+                .completionTimeout(5000)
+                .to("log:aggregate-json");
     }
 }
 
