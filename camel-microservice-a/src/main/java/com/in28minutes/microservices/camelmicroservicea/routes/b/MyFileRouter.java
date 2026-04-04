@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@Component
+//@Component
 public class MyFileRouter extends RouteBuilder {
 
     private DeciderBean deciderBean;
