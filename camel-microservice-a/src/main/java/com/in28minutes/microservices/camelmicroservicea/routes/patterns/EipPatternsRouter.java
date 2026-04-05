@@ -22,16 +22,23 @@ public class EipPatternsRouter extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        Logger logger = LoggerFactory.getLogger(EipPatternsRouter.class);
 
-        from("file:camel-microservice-a/files/aggregate-json")
-                .unmarshal().json(JsonLibrary.Jackson, CurrencyExchange.class)
-                .aggregate(simple("${body.to}"), new ArrayListAggregationStrategy())
-                // A linha abaixo diz: “Só finalize o grupo quando tiver 3 mensagens daquele grupo”
-                .completionSize(3)
-                // Para garantir a exibição dos logs, usar completionTimeout, que diz:
-                // “Se não chegar mais mensagens em 5s, finalize mesmo incompleto”
-                .completionTimeout(5000)
-                .to("log:aggregate-json");
+        String dynamicRoutingSlip = "direct:endpoint1,direct:endpoint2,direct:i-can-put-any-name-here";
+
+        from("timer:routingSlip?period=10000")
+                .transform().constant("This message is hardcoded, something that you definitely should avoid")
+                .routingSlip(simple(dynamicRoutingSlip));
+
+        from("direct:endpoint1")
+                .to("log:this-is-endpoint1");
+
+        from("direct:endpoint2")
+                .to("log:this-is-endpoint2");
+
+        from("direct:i-can-put-any-name-here")
+                .log("Running i-can-put-any-name-here endpoint")
+                .to("activemq:routing-slip-queue");
     }
 }
 
