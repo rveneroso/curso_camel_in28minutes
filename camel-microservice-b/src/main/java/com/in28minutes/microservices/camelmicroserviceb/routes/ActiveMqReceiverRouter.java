@@ -2,12 +2,15 @@ package com.in28minutes.microservices.camelmicroserviceb.routes;
 
 import com.in28minutes.microservices.camelmicroserviceb.CurrencyExchange;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.dataformat.JsonLibrary;
+import org.apache.camel.converter.crypto.CryptoDataFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.*;
+import java.security.cert.CertificateException;
 
 @Component
 public class ActiveMqReceiverRouter extends RouteBuilder {
@@ -24,17 +27,21 @@ public class ActiveMqReceiverRouter extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-//        from("activemq:my-activemq-queue")
-//                .unmarshal().json(JsonLibrary.Jackson, CurrencyExchange.class)
-//                .bean(myCurrentExchangeProcessor)
-//                .bean(myCurrentExchangeTransformer)
-//                .to("log:received-message-from-activemq");
 
-        from("activemq:split-queue")
-//                .unmarshal().jacksonXml(CurrencyExchange.class)
-//                .bean(myCurrentExchangeProcessor)
-//                .bean(myCurrentExchangeTransformer)
-                .to("log:received-message-from-activemq-split-queue");
+        from("activemq:encrypted-queue")
+                .unmarshal(createEncryptor())
+                .to("log:received-message-from-encrypted-queue");
+    }
+
+    private CryptoDataFormat createEncryptor() throws KeyStoreException, IOException, NoSuchAlgorithmException,
+            CertificateException, UnrecoverableKeyException {
+        KeyStore keyStore = KeyStore.getInstance("JCEKS");
+        ClassLoader classLoader = getClass().getClassLoader();
+        keyStore.load(classLoader.getResourceAsStream("myDesKey.jceks"), "someKeystorePassword".toCharArray());
+        Key sharedKey = keyStore.getKey("myDesKey", "someKeyPassword".toCharArray());
+
+        CryptoDataFormat sharedKeyCrypto = new CryptoDataFormat("DES", sharedKey);
+        return sharedKeyCrypto;
     }
 }
 
