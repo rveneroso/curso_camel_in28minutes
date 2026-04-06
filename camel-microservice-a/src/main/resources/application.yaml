@@ -9,3 +9,8 @@ camel:
   component:
     kafka:
       brokers: localhost:9092
+
+app:
+  dynamic-routes:
+    even: 'activemq:even-route'
+    odd: 'activemq:odd-route'

@@ -5,6 +5,7 @@ import org.apache.camel.Headers;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -17,6 +18,9 @@ public class EipPatternsRouter extends RouteBuilder {
     public EipPatternsRouter(DynamicRouterBean dynamicRouterBean) {
         this.dynamicRouterBean = dynamicRouterBean;
     }
+
+
+
 
     @Override
     public void configure() throws Exception {
@@ -35,8 +39,24 @@ public class EipPatternsRouter extends RouteBuilder {
 class DynamicRouterBean {
 
     Logger logger = LoggerFactory.getLogger(DynamicRouterBean.class);
+
+
+    @Value("${app.dynamic-routes.even}")
+    private String evenRoute;
+
+    @Value("${app.dynamic-routes.odd}")
+    private String oddRoute;
+
+    private int invocations;
+
     public String decideNextEndpoint(@ExchangeProperties Map<String, String> properties, @Headers Map<String, String> headers, String body) {
         logger.info("Properties: {}, Headers: {}, Body: {}", properties, headers, body);
-        return "activemq:dynamic-router-queue";
+        invocations++;
+
+        if(invocations%2==0) {
+            return evenRoute;
+        } else {
+            return oddRoute;
+        }
     }
 }
